@@ -12,13 +12,13 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode(callSuper = true)//继承父类hashcode 和  equals方法
 public abstract class ReActAgent extends BaseAgent {
 
-    //思考是否需要执行
+    //思考是否需要执行工具调用
     public abstract boolean think();
 
-    //执行
+    //执行工具调用
     public abstract String act();
 
-    //思考和行动
+    //思考工具的调用
     @Override
     public String step() {
         try {

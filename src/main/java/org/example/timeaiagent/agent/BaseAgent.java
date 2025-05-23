@@ -14,12 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-/**
- * 抽象基础代理类，用于管理代理状态和执行流程。
- * <p>
- * 提供状态转换、内存管理和基于步骤的执行循环的基础功能。
- * 子类必须实现step方法。
- */
+
 @Data
 @Slf4j
 public abstract class BaseAgent {
@@ -39,6 +34,14 @@ public abstract class BaseAgent {
     private ChatClient chatClient;
     // Memory 记忆（需要自主维护会话上下文）
     private List<Message> messageList = new ArrayList<>();
+
+    //思考是否需要执行工具调用并执行对应的逻辑
+    public abstract String step();
+
+    //清理资源（还没有实现）
+    protected void cleanup() {
+        // 子类可以重写此方法来清理资源
+    }
 
     //运行代理
     public String run(String userPrompt) {
@@ -63,18 +66,19 @@ public abstract class BaseAgent {
                 currentStep = stepNumber;
                 log.info("Executing step {}/{}", stepNumber, maxSteps);
 
-                //
+                //思考是否需要执行工具调用并执行对应的逻辑
                 String stepResult = step();
                 String result = "Step " + stepNumber + ": " + stepResult;
                 results.add(result);
             }
+
             // 检查是否超出步骤限制
             if (currentStep >= maxSteps) {
                 //状态更改
                 state = AgentState.FINISHED;
                 results.add("Terminated: Reached max steps (" + maxSteps + ")");
             }
-            return String.join("\n", results);//
+            return String.join("\n", results);
         } catch (Exception e) {
             state = AgentState.ERROR;
             log.error("error executing agent", e);
@@ -165,11 +169,4 @@ public abstract class BaseAgent {
         return sseEmitter;
     }
 
-    //定义单个步骤
-    public abstract String step();
-
-    //清理资源
-    protected void cleanup() {
-        // 子类可以重写此方法来清理资源
-    }
 }

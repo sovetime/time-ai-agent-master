@@ -48,13 +48,13 @@ public class ToolCallAgent extends ReActAgent {
     }
 
 
-    //处理当前状态并决定下一步行动
+    //思考是否需要执行工具调用
     @Override
     public boolean think() {
-        // 拼接下一步提示词（用户的提示词）
+        // 拼接下一步提示词
         if (StrUtil.isNotBlank(this.getNextStepPrompt())) {
             UserMessage userMessage = new UserMessage(this.getNextStepPrompt());
-            //Memory 记忆拼接用户提示词
+            //Memory 记忆拼接
             this.getMessageList().add(userMessage);
         }
 
@@ -105,7 +105,7 @@ public class ToolCallAgent extends ReActAgent {
     }
 
 
-    // 执行工具调用并处理结果
+    // 执行工具调用
     @Override
     public String act() {
         if (!toolCallChatResponse.hasToolCalls()) {
