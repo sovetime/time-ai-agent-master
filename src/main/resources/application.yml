@@ -1,6 +1,6 @@
 spring:
   application:
-    name: yu-ai-agent
+    name: time-ai-agent
   profiles:
     active: local
   datasource:
@@ -9,17 +9,20 @@ spring:
     password: Bill2279498816
     driver-class-name: org.postgresql.Driver
   ai:
+    #大模型接入
     dashscope:
       api-key: sk-f00cb90a8a7d443f8f244f68ecb85e99
       chat:
         options:
           model: qwen-plus
+    # 向量数据库接入
     vectorstore:
       pgvector:
         index-type: HNSW
         dimensions: 1536
         distance-type: COSINE_DISTANCE
         max-document-batch-size: 10000 # Optional: Maximum number of documents per batch
+    #mcp接入
     mcp:
       client:
         sse:
@@ -37,6 +40,7 @@ spring:
 #             #引入mcp-servers.json
 #            servers-configuration: classpath:mcp-servers.json
 
+
 server:
   port: 8123
   servlet:
@@ -53,7 +57,7 @@ springdoc:
   group-configs:
     - group: 'default'
       paths-to-match: '/**'
-      packages-to-scan: com.yupi.yuaiagent.controller
+      packages-to-scan: org.example.timeaiagent.controller
 
 # knife4j config
 knife4j:

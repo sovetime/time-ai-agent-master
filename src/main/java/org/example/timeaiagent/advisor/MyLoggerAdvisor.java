@@ -11,9 +11,8 @@ import org.springframework.ai.chat.client.advisor.api.StreamAroundAdvisor;
 import org.springframework.ai.chat.client.advisor.api.StreamAroundAdvisorChain;
 import org.springframework.ai.chat.model.MessageAggregator;
 
-//自定义日志 Advisor
+//自定义日志 Advisor，默认的 SimpleLoggerAdvisor 日志拦截器是debug级别的，SpringBoot是info，看不到打印信息
 // 打印 info 级别日志、只输出单次用户提示词和 AI 回复的文本
-//
 @Slf4j
 public class MyLoggerAdvisor implements CallAroundAdvisor, StreamAroundAdvisor {
 
@@ -44,12 +43,10 @@ public class MyLoggerAdvisor implements CallAroundAdvisor, StreamAroundAdvisor {
 	public AdvisedResponse aroundCall(AdvisedRequest advisedRequest, CallAroundAdvisorChain chain) {
 		//处理请求（前置处理）
 		advisedRequest = before(advisedRequest);
-
 		//调用链中的下一个 Advisor
 		AdvisedResponse advisedResponse = chain.nextAroundCall(advisedRequest);
-
+		//处理响应（后置处理）
 		observeAfter(advisedResponse);
-
 		return advisedResponse;
 	}
 

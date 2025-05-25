@@ -48,9 +48,10 @@ public class LoveApp {
         chatClient = ChatClient.builder(dashscopeChatModel)
                 .defaultSystem(SYSTEM_PROMPT)// 指定默认的系统 Prompt
                 .defaultAdvisors(
-                        new MessageChatMemoryAdvisor(chatMemory),
+                        // 对话记忆 Advisor
+                        new MessageChatMemoryAdvisor(chatMemory)
                         // 自定义日志 Advisor，可按需开启
-                        new MyLoggerAdvisor()
+                        ,new MyLoggerAdvisor()
 //                        // 自定义推理增强 Advisor，可按需开启
 //                       ,new ReReadingAdvisor()
                 )
@@ -74,11 +75,9 @@ public class LoveApp {
         return content;
     }
 
-
     //AI 基础对话（支持多轮对话记忆，SSE 流式传输）
     public Flux<String> doChatByStream(String message, String chatId) {
-        return chatClient
-                .prompt()
+        return chatClient.prompt()
                 .user(message)
                 .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
                         .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
@@ -108,17 +107,16 @@ public class LoveApp {
 
 
     //Spring AI 中用于与向量数据库交互的核心接口
+
+    //应用 RAG 知识库问答（本地知识库，基于内存，自定义了文档加载，切割等操作）
     @Resource
     private VectorStore loveAppVectorStore;
-
-    //
+    //应用 RAG 检索增强服务（基于云知识库服务）
     @Resource
     private Advisor loveAppRagCloudAdvisor;
-
     //
     @Resource
     private VectorStore pgVectorVectorStore;
-
     //
     @Resource
     private QueryRewriter queryRewriter;
@@ -136,11 +134,11 @@ public class LoveApp {
                 .user(rewrittenMessage)
                 // 开启日志，便于观察效果
                 .advisors(new MyLoggerAdvisor())
-                // 应用 RAG 知识库问答
+                // 应用 RAG 知识库问答（基于本地知识库）
                 //.advisors(new QuestionAnswerAdvisor(loveAppVectorStore))
                 // 应用 RAG 检索增强服务（基于云知识库服务）
                 .advisors(loveAppRagCloudAdvisor)
-                // 应用 RAG 检索增强服务（基于 PgVector 向量存储）
+                // 应用 RAG 检索增强服务（基于云知识库服务）
                 .advisors(new QuestionAnswerAdvisor(pgVectorVectorStore))
                 // 应用自定义的 RAG 检索增强服务（文档查询器 + 上下文增强器）
 //                .advisors(

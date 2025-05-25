@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-//恋爱大师应用文档加载器
+//文档加载器
 @Component
 @Slf4j
 public class LoveAppDocumentLoader {
@@ -32,7 +32,7 @@ public class LoveAppDocumentLoader {
             for (Resource resource : resources) {
                 //获取文件名
                 String filename = resource.getFilename();
-                //提取文档倒数第6到倒数第6位，示例 单身、已婚、恋爱
+                //提取文档倒数第4到倒数第6位，示例 单身、已婚、恋爱
                 String status = filename.substring(filename.length() - 6, filename.length() - 4);
                 MarkdownDocumentReaderConfig config = MarkdownDocumentReaderConfig.builder()
                         .withHorizontalRuleCreateDocument(true)//是否创建文档

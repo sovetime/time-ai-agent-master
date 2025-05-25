@@ -9,7 +9,7 @@ import java.util.List;
 
 //自定义基于 Token 的切词器
 @Component
-class MyTokenTextSplitter {
+public class MyTokenTextSplitter {
 
     // 默认切词器
     public List<Document> splitDocuments(List<Document> documents) {
@@ -19,7 +19,12 @@ class MyTokenTextSplitter {
 
     //  自定义切词器
     public List<Document> splitCustomized(List<Document> documents) {
-        TokenTextSplitter splitter = new TokenTextSplitter(200, 100, 10, 5000, true);
+        TokenTextSplitter splitter = new TokenTextSplitter(
+                200,   //  最大长度
+                100,            //  最小长度
+                10,             //  拆分阈值
+                5000,           //  最大数量
+                true);          //  是否忽略标点符号
         return splitter.apply(documents);
     }
 }
