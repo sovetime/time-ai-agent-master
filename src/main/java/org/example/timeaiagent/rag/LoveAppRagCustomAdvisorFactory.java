@@ -24,7 +24,7 @@ public class LoveAppRagCustomAdvisorFactory {
                 .vectorStore(vectorStore)
                 .filterExpression(expression) // 过滤条件
                 .similarityThreshold(0.5) // 相似度阈值
-                .topK(3) // 返回文档数量
+                .topK(3) // 返回最相似的5个结果
                 .build();
 
         return RetrievalAugmentationAdvisor.builder()

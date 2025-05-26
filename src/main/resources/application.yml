@@ -30,14 +30,6 @@ spring:
             server1:
               url: http://localhost:8127
 #        stdio:
-#          connections:
-#            server1:
-#              command: /path/to/server
-#              args:
-#                - --port=8080
-#              env:
-#                API_KEY: e9c4bcbf4277e3ac4aea042366966c6b
-#             #引入mcp-servers.json
 #            servers-configuration: classpath:mcp-servers.json
 
 
