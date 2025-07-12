@@ -34,13 +34,14 @@ public class AiController {
     }
 
 
-    //SSE 流式调用 AI 恋爱大师应用
+    //SSE 流式调用 AI 恋爱大师应用，纯文本流
+    //使用了 MediaType.TEXT_EVENT_STREAM_VALUE 表示这是一个 SSE 流
     @GetMapping(value = "/love_app/chat/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<String> doChatWithLoveAppSSE(String message, String chatId) {
         return loveApp.doChatByStream(message, chatId);
     }
 
-    //SSE 流式调用 AI 恋爱大师应用
+    //SSE 流式调用 AI 恋爱大师应用，构建了 ServerSentEvent 对象，允许添加更多元信息（如 event name、id、retry 等）
     @GetMapping(value = "/love_app/chat/server_sent_event")
     public Flux<ServerSentEvent<String>> doChatWithLoveAppServerSentEvent(String message, String chatId) {
         return loveApp.doChatByStream(message, chatId)
@@ -50,7 +51,7 @@ public class AiController {
     }
 
 
-    //SSE 流式调用 AI 恋爱大师应用
+    //SSE 流式调用 AI 恋爱大师应用，使用 SseEmitter
     @GetMapping(value = "/love_app/chat/sse_emitter")
     public SseEmitter doChatWithLoveAppServerSseEmitter(String message, String chatId) {
         // 创建一个超时时间较长的 SseEmitter

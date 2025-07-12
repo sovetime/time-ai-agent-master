@@ -1,16 +1,16 @@
 package org.example.timeaiagent.app;
 
 import org.example.timeaiagent.advisor.MyLoggerAdvisor;
-import org.example.timeaiagent.rag.LoveAppRagCustomAdvisorFactory;
 import org.example.timeaiagent.rag.QueryRewriter;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
-import org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
+import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.chat.memory.InMemoryChatMemory;
+import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
+import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.tool.ToolCallback;
@@ -21,8 +21,6 @@ import reactor.core.publisher.Flux;
 
 import java.util.List;
 
-import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY;
-import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_RETRIEVE_SIZE_KEY;
 
 @Component
 @Slf4j
@@ -45,12 +43,15 @@ public class LoveApp {
 //        ChatMemory chatMemory = new FileBasedChatMemory(fileDir);
 
         // 初始化基于内存的对话记忆
-        ChatMemory chatMemory = new InMemoryChatMemory();
+        MessageWindowChatMemory chatMemory = MessageWindowChatMemory.builder()
+                .chatMemoryRepository(new InMemoryChatMemoryRepository())
+                .maxMessages(20)
+                .build();
         chatClient = ChatClient.builder(dashscopeChatModel)
                 .defaultSystem(SYSTEM_PROMPT)// 指定默认的系统 Prompt
                 .defaultAdvisors(
                         // 对话记忆 Advisor
-                        new MessageChatMemoryAdvisor(chatMemory)
+                        MessageChatMemoryAdvisor.builder(chatMemory).build()
                         // 自定义日志 Advisor，可按需开启
                         ,new MyLoggerAdvisor()
 //                        // 自定义推理增强 Advisor，可按需开启
@@ -64,9 +65,7 @@ public class LoveApp {
     public String doChat(String message, String chatId) {
         ChatResponse chatResponse = chatClient.prompt()
                 .user(message)
-                .advisors(
-                        spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)//对话 id
-                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))//记忆大小
+                .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))//对话 id
                 .call()
                 .chatResponse();
 
@@ -80,8 +79,7 @@ public class LoveApp {
     public Flux<String> doChatByStream(String message, String chatId) {
         return chatClient.prompt()
                 .user(message)
-                .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
-                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
+                .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
                 .stream()
                 .content();
     }
@@ -96,8 +94,7 @@ public class LoveApp {
         LoveReport loveReport = chatClient.prompt()
                 .system(SYSTEM_PROMPT + "每次对话后都要生成恋爱结果，标题为{用户名}的恋爱报告，内容为建议列表")
                 .user(message)
-                .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
-                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
+                .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
                 .call()
                 .entity(LoveReport.class);
 
@@ -128,8 +125,7 @@ public class LoveApp {
         // 查询重写
         String rewrittenMessage = queryRewriter.doQueryRewrite(message);
         ChatResponse chatResponse = chatClient.prompt()
-                .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
-                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
+                .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
                 // 使用改写后的查询
                 .user(rewrittenMessage)
                 // 开启日志，便于观察效果
@@ -160,8 +156,7 @@ public class LoveApp {
     //AI 恋爱报告功能（支持调用工具）
     public String doChatWithTools(String message, String chatId) {
         ChatResponse chatResponse = chatClient.prompt()
-                .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
-                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
+                .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
                 .user(message)
                 // 开启日志，便于观察效果
                 .advisors(new MyLoggerAdvisor())
@@ -183,11 +178,10 @@ public class LoveApp {
         ChatResponse chatResponse = chatClient
                 .prompt()
                 .user(message)
-                .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
-                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
+                .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
                 // 开启日志，便于观察效果
                 .advisors(new MyLoggerAdvisor())
-                .tools(toolCallbackProvider)
+                .toolCallbacks(toolCallbackProvider)
                 .call()
                 .chatResponse();
 
@@ -195,4 +189,5 @@ public class LoveApp {
         log.info("content: {}", content);
         return content;
     }
+
 }
